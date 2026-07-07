@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpendWise</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #111118;
+      --surface2: #1a1a24;
+      --border: #2a2a38;
+      --text: #e8e8f0;
+      --muted: #6b6b80;
+      --income: #22c55e;
+      --expense: #ef4444;
+      --accent: #818cf8;
+      --income-bg: #052e16;
+      --expense-bg: #2d0707;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* AUTH */
+    #auth-view {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .brand h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #818cf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand p {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.25rem;
+    }
+
+    .tabs {
+      display: flex;
+      background: var(--surface2);
+      border-radius: 8px;
+      padding: 3px;
+      margin-bottom: 1.5rem;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 0.5rem;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--surface);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+    }
+
+    .field { margin-bottom: 1rem; }
+
+    .field label {
+      display: block;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--muted);
+      margin-bottom: 0.35rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+    select option { background: var(--surface2); }
+
+    .btn {
+      width: 100%;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.85; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-sm {
+      width: auto;
+      padding: 0.3rem 0.65rem;
+      font-size: 0.78rem;
+      font-weight: 500;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-ghost { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-danger { background: var(--expense-bg); color: var(--expense); }
+
+    .error { color: var(--expense); font-size: 0.8rem; margin-top: 0.5rem; }
+
+    /* APP */
+    #app-view { display: none; }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .topbar-brand {
+      font-weight: 700;
+      font-size: 1rem;
+      background: linear-gradient(135deg, #818cf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+
+    .main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* SUMMARY CARDS */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .summary-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .summary-card .label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+
+    .summary-card .amount {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .summary-card.income-card .amount { color: var(--income); }
+    .summary-card.expense-card .amount { color: var(--expense); }
+    .summary-card.balance-card .amount { color: var(--accent); }
+
+    /* ADD TRANSACTION */
+    .add-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .add-section h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 1rem;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr auto;
+      gap: 0.65rem;
+      align-items: end;
+    }
+
+    .form-row .field { margin-bottom: 0; }
+
+    /* TRANSACTIONS */
+    .tx-section h2 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+
+    .tx-list {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .tx-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .tx-item:last-child { border-bottom: none; }
+    .tx-item:hover { background: var(--surface2); }
+
+    .tx-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .tx-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+
+    .tx-icon.income { background: var(--income-bg); }
+    .tx-icon.expense { background: var(--expense-bg); }
+
+    .tx-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 0.15rem;
+    }
+
+    .tx-meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
+    .tx-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .tx-amount {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+
+    .tx-amount.income { color: var(--income); }
+    .tx-amount.expense { color: var(--expense); }
+
+    .empty {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .type-toggle {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .type-btn {
+      flex: 1;
+      padding: 0.65rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .type-btn.active-income {
+      background: var(--income-bg);
+      color: var(--income);
+      border-color: #166534;
+    }
+
+    .type-btn.active-expense {
+      background: var(--expense-bg);
+      color: var(--expense);
+      border-color: #7f1d1d;
+    }
+
+    @media (max-width: 640px) {
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .form-row { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-view">
+  <div class="auth-card">
+    <div class="brand">
+      <h1>SpendWise</h1>
+      <p>Track your income and expenses</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('login')">Sign In</button>
+      <button class="tab" onclick="showTab('register')">Register</button>
+    </div>
+
+    <div id="login-form">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="l-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="l-pass" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary" onclick="login()">Sign In</button>
+      <div class="error" id="l-err"></div>
+    </div>
+
+    <div id="register-form" style="display:none">
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="r-name" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="r-email" placeholder="you@example.com">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="r-pass" placeholder="Min 8 characters">
+      </div>
+      <button class="btn btn-primary" onclick="register()">Create Account</button>
+      <div class="error" id="r-err"></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app-view">
+  <div class="topbar">
+    <div class="topbar-brand">SpendWise</div>
+    <div class="topbar-right">
+      <span id="user-name"></span>
+      <button class="btn-sm btn-ghost" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- SUMMARY -->
+    <div class="summary-grid">
+      <div class="summary-card income-card">
+        <div class="label">Total Income</div>
+        <div class="amount" id="total-income">₹0</div>
+      </div>
+      <div class="summary-card expense-card">
+        <div class="label">Total Expenses</div>
+        <div class="amount" id="total-expense">₹0</div>
+      </div>
+      <div class="summary-card balance-card">
+        <div class="label">Balance</div>
+        <div class="amount" id="total-balance">₹0</div>
+      </div>
+    </div>
+
+    <!-- ADD TRANSACTION -->
+    <div class="add-section">
+      <h2>Add Transaction</h2>
+
+      <div class="field" style="margin-bottom:1rem">
+        <div class="type-toggle">
+          <div class="type-btn active-income" id="btn-income" onclick="setType('income')">+ Income</div>
+          <div class="type-btn" id="btn-expense" onclick="setType('expense')">- Expense</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="field">
+          <label>Amount (₹)</label>
+          <input type="number" id="f-amount" placeholder="0.00" min="0" step="0.01">
+        </div>
+        <div class="field">
+          <label>Category</label>
+          <select id="f-category"></select>
+        </div>
+        <div class="field">
+          <label>Date</label>
+          <input type="date" id="f-date">
+        </div>
+        <div class="field">
+          <label>Note (optional)</label>
+          <input type="text" id="f-note" placeholder="e.g. Zomato order">
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <button class="btn btn-primary" style="width:auto;padding:0.65rem 1.25rem" onclick="addTransaction()">Add</button>
+        </div>
+      </div>
+      <div class="error" id="f-err"></div>
+    </div>
+
+    <!-- TRANSACTIONS -->
+    <div class="tx-section">
+      <h2>Transactions</h2>
+      <div class="tx-list" id="tx-list">
+        <div class="empty">No transactions yet.</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const INCOME_CATEGORIES = ['salary', 'freelance', 'business', 'investment', 'gift', 'other'];
+  const EXPENSE_CATEGORIES = ['food', 'transport', 'rent', 'utilities', 'entertainment', 'shopping', 'health', 'education', 'other'];
+  const CATEGORY_ICONS = {
+    salary: '💼', freelance: '💻', business: '🏢', investment: '📈', gift: '🎁',
+    food: '🍛', transport: '🚗', rent: '🏠', utilities: '💡', entertainment: '🎬',
+    shopping: '🛍️', health: '🏥', education: '📚', other: '📦'
+  };
+
+  let token = localStorage.getItem('sw_token');
+  let userData = JSON.parse(localStorage.getItem('sw_user') || 'null');
+  let currentType = 'income';
+
+  if (token && userData) showApp();
+  else setTodayDate();
+
+  function setTodayDate() {
+    const d = new Date();
+    const val = d.toISOString().split('T')[0];
+    const el = document.getElementById('f-date');
+    if (el) el.value = val;
+  }
+
+  function showTab(tab) {
+    document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+    document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+    document.querySelectorAll('.tab').forEach((b, i) => {
+      b.classList.toggle('active', (i === 0 && tab === 'login') || (i === 1 && tab === 'register'));
+    });
+  }
+
+  function setType(type) {
+    currentType = type;
+    document.getElementById('btn-income').className = 'type-btn' + (type === 'income' ? ' active-income' : '');
+    document.getElementById('btn-expense').className = 'type-btn' + (type === 'expense' ? ' active-expense' : '');
+    updateCategories();
+  }
+
+  function updateCategories() {
+    const sel = document.getElementById('f-category');
+    const cats = currentType === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+    sel.innerHTML = cats.map(c => `<option value="${c}">${c.charAt(0).toUpperCase() + c.slice(1)}</option>`).join('');
+  }
+
+  async function api(method, path, body) {
+    const res = await fetch('/api' + path, {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: 'Bearer ' + token } : {})
+      },
+      body: body ? JSON.stringify(body) : undefined
+    });
+    return res.json();
+  }
+
+  async function login() {
+    const email = document.getElementById('l-email').value.trim();
+    const password = document.getElementById('l-pass').value;
+    const data = await api('POST', '/auth/login', { email, password });
+    if (data.error) { document.getElementById('l-err').textContent = data.error; return; }
+    token = data.token;
+    userData = data.user;
+    localStorage.setItem('sw_token', token);
+    localStorage.setItem('sw_user', JSON.stringify(userData));
+    showApp();
+  }
+
+  async function register() {
+    const name = document.getElementById('r-name').value.trim();
+    const email = document.getElementById('r-email').value.trim();
+    const password = document.getElementById('r-pass').value;
+    const data = await api('POST', '/auth/register', { name, email, password });
+    if (data.error) { document.getElementById('r-err').textContent = data.error; return; }
+    token = data.token;
+    userData = data.user;
+    localStorage.setItem('sw_token', token);
+    localStorage.setItem('sw_user', JSON.stringify(userData));
+    showApp();
+  }
+
+  function logout() {
+    token = null; userData = null;
+    localStorage.removeItem('sw_token');
+    localStorage.removeItem('sw_user');
+    document.getElementById('app-view').style.display = 'none';
+    document.getElementById('auth-view').style.display = 'flex';
+  }
+
+  function showApp() {
+    document.getElementById('auth-view').style.display = 'none';
+    document.getElementById('app-view').style.display = 'block';
+    document.getElementById('user-name').textContent = userData.name;
+    updateCategories();
+    setTodayDate();
+    loadTransactions();
+  }
+
+  function fmt(n) {
+    return '₹' + Math.abs(n).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  async function loadTransactions() {
+    const data = await api('GET', '/transactions');
+    if (data.error) { logout(); return; }
+
+    const { transactions, summary } = data;
+
+    document.getElementById('total-income').textContent = fmt(summary.income);
+    document.getElementById('total-expense').textContent = fmt(summary.expense);
+    const balanceEl = document.getElementById('total-balance');
+    balanceEl.textContent = (summary.balance < 0 ? '-' : '') + fmt(summary.balance);
+    balanceEl.style.color = summary.balance < 0 ? 'var(--expense)' : 'var(--accent)';
+
+    const list = document.getElementById('tx-list');
+    if (!transactions.length) {
+      list.innerHTML = '<div class="empty">No transactions yet. Add your first one above.</div>';
+      return;
+    }
+
+    list.innerHTML = transactions.map(t => `
+      <div class="tx-item">
+        <div class="tx-left">
+          <div class="tx-icon ${t.type}">${CATEGORY_ICONS[t.category] || '📦'}</div>
+          <div>
+            <div class="tx-name">${t.category.charAt(0).toUpperCase() + t.category.slice(1)}</div>
+            <div class="tx-meta">${t.date}${t.note ? ' · ' + t.note : ''}</div>
+          </div>
+        </div>
+        <div class="tx-right">
+          <div class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'}${fmt(t.amount)}</div>
+          <button class="btn-sm btn-danger" onclick="deleteTransaction(${t.id})">×</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function addTransaction() {
+    const amount = document.getElementById('f-amount').value;
+    const category = document.getElementById('f-category').value;
+    const date = document.getElementById('f-date').value;
+    const note = document.getElementById('f-note').value.trim();
+
+    const data = await api('POST', '/transactions', { type: currentType, amount: parseFloat(amount), category, date, note });
+    if (data.error) { document.getElementById('f-err').textContent = data.error; return; }
+
+    document.getElementById('f-amount').value = '';
+    document.getElementById('f-note').value = '';
+    document.getElementById('f-err').textContent = '';
+    setTodayDate();
+    loadTransactions();
+  }
+
+  async function deleteTransaction(id) {
+    await api('DELETE', `/transactions/${id}`);
+    loadTransactions();
+  }
+</script>
+</body>
+</html>
