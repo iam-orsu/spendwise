@@ -136,5 +136,16 @@ const db = {
     };
   }
 };
-
+db.exec(`
+  CREATE TABLE IF NOT EXISTS budgets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    monthly_limit REAL NOT NULL,
+    month TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE(user_id, category, month)
+  );
+`);
 module.exports = db;
